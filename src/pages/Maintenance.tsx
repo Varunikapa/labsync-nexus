@@ -1,27 +1,38 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Plus, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
-const statusFilters = ["All", "Scheduled", "In Progress", "Completed", "Overdue"];
-
-const maintenanceData = [
-  { id: "MT-001", equipment: "Centrifuge X200", lab: "Biochemistry", type: "Preventive", status: "Scheduled", date: "2024-03-15", assignee: "Tech. Johnson" },
-  { id: "MT-002", equipment: "Fume Hood B3", lab: "Chemistry", type: "Repair", status: "In Progress", date: "2024-03-12", assignee: "Tech. Williams" },
-  { id: "MT-003", equipment: "PCR Machine", lab: "Biochemistry", type: "Calibration", status: "Completed", date: "2024-03-10", assignee: "Tech. Davis" },
-  { id: "MT-004", equipment: "Oscilloscope", lab: "Physics", type: "Repair", status: "Overdue", date: "2024-03-08", assignee: "Tech. Brown" },
-  { id: "MT-005", equipment: "Autoclave Unit", lab: "Chemistry", type: "Preventive", status: "Scheduled", date: "2024-03-18", assignee: "Tech. Johnson" },
-  { id: "MT-006", equipment: "3D Printer", lab: "Robotics", type: "Repair", status: "In Progress", date: "2024-03-11", assignee: "Tech. Garcia" },
-];
+const statusFilters = ["All", "scheduled", "in_progress", "completed", "overdue"];
+const statusLabels: Record<string, string> = {
+  scheduled: "Scheduled",
+  in_progress: "In Progress",
+  completed: "Completed",
+  overdue: "Overdue",
+};
 
 const statusStyles: Record<string, string> = {
-  Scheduled: "bg-info/15 text-info",
-  "In Progress": "bg-warning/15 text-warning",
-  Completed: "bg-success/15 text-success",
-  Overdue: "bg-destructive/15 text-destructive",
+  scheduled: "bg-info/15 text-info",
+  in_progress: "bg-warning/15 text-warning",
+  completed: "bg-success/15 text-success",
+  overdue: "bg-destructive/15 text-destructive",
 };
 
 export default function Maintenance() {
   const [filter, setFilter] = useState("All");
   const [showModal, setShowModal] = useState(false);
+
+  const { data: maintenanceData = [], isLoading } = useQuery({
+    queryKey: ["maintenance"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("maintenance_records")
+        .select("*, equipment(equipment_id, name)")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const filtered = filter === "All" ? maintenanceData : maintenanceData.filter((m) => m.status === filter);
 
@@ -44,39 +55,50 @@ export default function Maintenance() {
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               filter === s ? "bg-primary text-primary-foreground" : "bg-secondary border border-border text-muted-foreground hover:text-foreground"
             }`}>
-            {s}
+            {s === "All" ? "All" : statusLabels[s] || s}
           </button>
         ))}
       </div>
 
       {/* Table */}
       <div className="bg-card border border-border rounded-xl p-5 overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border text-muted-foreground text-left">
-              <th className="pb-3 font-medium">ID</th>
-              <th className="pb-3 font-medium">Equipment</th>
-              <th className="pb-3 font-medium">Lab</th>
-              <th className="pb-3 font-medium">Type</th>
-              <th className="pb-3 font-medium">Status</th>
-              <th className="pb-3 font-medium">Date</th>
-              <th className="pb-3 font-medium">Assignee</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((m) => (
-              <tr key={m.id} className="border-b border-border/50 hover:bg-secondary/50 transition-colors">
-                <td className="py-3 font-mono text-xs">{m.id}</td>
-                <td className="py-3 text-foreground font-medium">{m.equipment}</td>
-                <td className="py-3 text-muted-foreground">{m.lab}</td>
-                <td className="py-3 text-muted-foreground">{m.type}</td>
-                <td className="py-3"><span className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusStyles[m.status]}`}>{m.status}</span></td>
-                <td className="py-3 text-muted-foreground">{m.date}</td>
-                <td className="py-3 text-muted-foreground">{m.assignee}</td>
+        {isLoading ? (
+          <p className="text-muted-foreground text-sm">Loading maintenance records...</p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-muted-foreground text-left">
+                <th className="pb-3 font-medium">Equipment</th>
+                <th className="pb-3 font-medium">Lab</th>
+                <th className="pb-3 font-medium">Description</th>
+                <th className="pb-3 font-medium">Severity</th>
+                <th className="pb-3 font-medium">Status</th>
+                <th className="pb-3 font-medium">Reported By</th>
+                <th className="pb-3 font-medium">Date</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filtered.map((m) => (
+                <tr key={m.id} className="border-b border-border/50 hover:bg-secondary/50 transition-colors">
+                  <td className="py-3 text-foreground font-medium">{(m.equipment as any)?.name || "—"}</td>
+                  <td className="py-3 text-muted-foreground">{m.lab_location}</td>
+                  <td className="py-3 text-muted-foreground max-w-[200px] truncate">{m.description}</td>
+                  <td className="py-3">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${
+                      m.severity === "high" ? "bg-destructive/15 text-destructive" : m.severity === "medium" ? "bg-warning/15 text-warning" : "bg-info/15 text-info"
+                    }`}>{m.severity}</span>
+                  </td>
+                  <td className="py-3"><span className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusStyles[m.status]}`}>{statusLabels[m.status]}</span></td>
+                  <td className="py-3 text-muted-foreground">{m.reported_by}</td>
+                  <td className="py-3 text-muted-foreground">{m.scheduled_date ? new Date(m.scheduled_date).toLocaleDateString() : "—"}</td>
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr><td colSpan={7} className="py-6 text-center text-muted-foreground">No records found.</td></tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Modal */}
