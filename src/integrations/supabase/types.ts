@@ -14,7 +14,225 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          booking_date: string
+          created_at: string
+          duration_hours: number
+          end_time: string
+          faculty_member: string
+          id: string
+          lab_id: string
+          start_time: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          booking_date: string
+          created_at?: string
+          duration_hours?: number
+          end_time: string
+          faculty_member: string
+          id?: string
+          lab_id: string
+          start_time: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          booking_date?: string
+          created_at?: string
+          duration_hours?: number
+          end_time?: string
+          faculty_member?: string
+          id?: string
+          lab_id?: string
+          start_time?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipment: {
+        Row: {
+          created_at: string
+          equipment_id: string
+          id: string
+          lab_id: string | null
+          last_maintained: string | null
+          name: string
+          risk_level: string
+          status: string
+          type: string
+          updated_at: string
+          usage_hours: number
+        }
+        Insert: {
+          created_at?: string
+          equipment_id: string
+          id?: string
+          lab_id?: string | null
+          last_maintained?: string | null
+          name: string
+          risk_level?: string
+          status?: string
+          type: string
+          updated_at?: string
+          usage_hours?: number
+        }
+        Update: {
+          created_at?: string
+          equipment_id?: string
+          id?: string
+          lab_id?: string | null
+          last_maintained?: string | null
+          name?: string
+          risk_level?: string
+          status?: string
+          type?: string
+          updated_at?: string
+          usage_hours?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          item_id: string
+          last_restocked: string | null
+          min_threshold: number
+          name: string
+          stock: number
+          supplier: string | null
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          item_id: string
+          last_restocked?: string | null
+          min_threshold?: number
+          name: string
+          stock?: number
+          supplier?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          item_id?: string
+          last_restocked?: string | null
+          min_threshold?: number
+          name?: string
+          stock?: number
+          supplier?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      labs: {
+        Row: {
+          created_at: string
+          equipment_count: number
+          id: string
+          name: string
+          seats_occupied: number
+          seats_total: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          equipment_count?: number
+          id?: string
+          name: string
+          seats_occupied?: number
+          seats_total?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          equipment_count?: number
+          id?: string
+          name?: string
+          seats_occupied?: number
+          seats_total?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      maintenance_records: {
+        Row: {
+          completed_date: string | null
+          created_at: string
+          description: string
+          equipment_id: string | null
+          id: string
+          lab_location: string | null
+          reported_by: string | null
+          scheduled_date: string | null
+          severity: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          completed_date?: string | null
+          created_at?: string
+          description: string
+          equipment_id?: string | null
+          id?: string
+          lab_location?: string | null
+          reported_by?: string | null
+          scheduled_date?: string | null
+          severity?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          completed_date?: string | null
+          created_at?: string
+          description?: string
+          equipment_id?: string | null
+          id?: string
+          lab_location?: string | null
+          reported_by?: string | null
+          scheduled_date?: string | null
+          severity?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_records_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

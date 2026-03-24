@@ -1,11 +1,11 @@
+import { useQuery } from "@tanstack/react-query";
 import { TrendingUp, TrendingDown, Monitor, CheckCircle, AlertTriangle, Activity } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { supabase } from "@/integrations/supabase/client";
 
-const stats = [
-  { label: "Total Equipment", value: "240", change: "+12%", up: true, icon: Monitor },
-  { label: "Available", value: "187", change: "+5.2%", up: true, icon: CheckCircle },
-  { label: "Maintenance", value: "23", change: "+8.1%", up: false, icon: AlertTriangle },
-  { label: "Active Today", value: "6", change: "+2", up: true, icon: Activity },
+const weeklyUsage = [
+  { day: "Mon", usage: 72 }, { day: "Tue", usage: 85 }, { day: "Wed", usage: 68 },
+  { day: "Thu", usage: 91 }, { day: "Fri", usage: 78 }, { day: "Sat", usage: 32 }, { day: "Sun", usage: 15 },
 ];
 
 const labs = ["Biochemistry", "Physics", "Electronics", "Comp Sci", "Robotics", "Chemistry"];
@@ -18,22 +18,49 @@ const heatmapData: number[][] = [
   [0, 1, 1, 2, 3, 3, 2, 1, 0, 0],
   [1, 2, 3, 3, 2, 2, 1, 1, 2, 1],
 ];
-
 const heatColors = ["bg-secondary", "bg-primary/20", "bg-primary/45", "bg-primary/80"];
 
-const weeklyUsage = [
-  { day: "Mon", usage: 72 }, { day: "Tue", usage: 85 }, { day: "Wed", usage: 68 },
-  { day: "Thu", usage: 91 }, { day: "Fri", usage: 78 }, { day: "Sat", usage: 32 }, { day: "Sun", usage: 15 },
-];
-
-const riskEquipment = [
-  { id: "EQ-001", lab: "Biochemistry", type: "Centrifuge", usage: 94, lastMaint: 45, risk: 92, status: "High Risk" },
-  { id: "EQ-017", lab: "Chemistry", type: "Fume Hood", usage: 88, lastMaint: 38, risk: 85, status: "High Risk" },
-  { id: "EQ-042", lab: "Physics", type: "Oscilloscope", usage: 76, lastMaint: 30, risk: 68, status: "Medium" },
-  { id: "EQ-089", lab: "Electronics", type: "Soldering Station", usage: 71, lastMaint: 25, risk: 55, status: "Medium" },
-];
-
 export default function Dashboard() {
+  const { data: equipment = [] } = useQuery({
+    queryKey: ["all-equipment"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("equipment").select("*, labs(name)");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const totalEquipment = equipment.length;
+  const available = equipment.filter((e) => e.status === "available").length;
+  const inMaintenance = equipment.filter((e) => e.status === "maintenance" || e.status === "faulty").length;
+  const activeToday = equipment.filter((e) => e.status === "in_use").length;
+
+  const stats = [
+    { label: "Total Equipment", value: String(totalEquipment), change: "+12%", up: true, icon: Monitor },
+    { label: "Available", value: String(available), change: "+5.2%", up: true, icon: CheckCircle },
+    { label: "Maintenance", value: String(inMaintenance), change: "+8.1%", up: false, icon: AlertTriangle },
+    { label: "Active Today", value: String(activeToday), change: "+2", up: true, icon: Activity },
+  ];
+
+  const riskEquipment = equipment
+    .filter((e) => e.risk_level === "high" || e.risk_level === "medium")
+    .map((e) => {
+      const daysSinceMaint = e.last_maintained
+        ? Math.floor((Date.now() - new Date(e.last_maintained).getTime()) / 86400000)
+        : 999;
+      const risk = Math.min(99, Math.round(Number(e.usage_hours) / 20 + daysSinceMaint));
+      return {
+        id: e.equipment_id,
+        lab: (e.labs as any)?.name || "—",
+        type: e.type,
+        usage: Math.min(99, Math.round(Number(e.usage_hours) / 15)),
+        lastMaint: daysSinceMaint,
+        risk,
+        status: e.risk_level === "high" ? "High Risk" : "Medium",
+      };
+    })
+    .sort((a, b) => b.risk - a.risk);
+
   return (
     <div className="space-y-6">
       <div>
@@ -134,10 +161,7 @@ export default function Dashboard() {
                   <td className="py-3">
                     <div className="flex items-center gap-2">
                       <div className="w-20 h-2 bg-secondary rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full ${eq.risk >= 80 ? "bg-destructive" : "bg-warning"}`}
-                          style={{ width: `${eq.risk}%` }}
-                        />
+                        <div className={`h-full rounded-full ${eq.risk >= 80 ? "bg-destructive" : "bg-warning"}`} style={{ width: `${eq.risk}%` }} />
                       </div>
                       <span className="text-xs">{eq.risk}%</span>
                     </div>
@@ -145,17 +169,16 @@ export default function Dashboard() {
                   <td className="py-3">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
                       eq.status === "High Risk" ? "bg-destructive/15 text-destructive" : "bg-warning/15 text-warning"
-                    }`}>
-                      {eq.status}
-                    </span>
+                    }`}>{eq.status}</span>
                   </td>
                   <td className="py-3">
-                    <button className="px-3 py-1.5 text-xs bg-primary/15 text-primary rounded-lg hover:bg-primary/25 transition-colors font-medium">
-                      Schedule
-                    </button>
+                    <button className="px-3 py-1.5 text-xs bg-primary/15 text-primary rounded-lg hover:bg-primary/25 transition-colors font-medium">Schedule</button>
                   </td>
                 </tr>
               ))}
+              {riskEquipment.length === 0 && (
+                <tr><td colSpan={7} className="py-6 text-center text-muted-foreground">No high-risk equipment found.</td></tr>
+              )}
             </tbody>
           </table>
         </div>
