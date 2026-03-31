@@ -20,6 +20,7 @@ const navItems = [
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const { profile, signOut } = useAuth();
 
   return (
     <div className="flex h-screen overflow-hidden">
