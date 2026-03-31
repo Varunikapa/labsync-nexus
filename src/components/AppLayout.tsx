@@ -1,9 +1,10 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, FlaskConical, CalendarDays, Wrench,
-  BarChart3, Package, Bot, Settings, Bell, Search, ChevronLeft, Menu
+  BarChart3, Package, Bot, Settings, Bell, Search, ChevronLeft, Menu, LogOut
 } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/" },
