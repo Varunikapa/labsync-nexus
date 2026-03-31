@@ -26,6 +26,7 @@ export type Database = {
           start_time: string
           subject: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           booking_date: string
@@ -38,6 +39,7 @@ export type Database = {
           start_time: string
           subject: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           booking_date?: string
@@ -50,6 +52,7 @@ export type Database = {
           start_time?: string
           subject?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -74,6 +77,7 @@ export type Database = {
           type: string
           updated_at: string
           usage_hours: number
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -87,6 +91,7 @@ export type Database = {
           type: string
           updated_at?: string
           usage_hours?: number
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -100,6 +105,7 @@ export type Database = {
           type?: string
           updated_at?: string
           usage_hours?: number
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -123,6 +129,7 @@ export type Database = {
           stock: number
           supplier: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           category: string
@@ -135,6 +142,7 @@ export type Database = {
           stock?: number
           supplier?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           category?: string
@@ -147,6 +155,7 @@ export type Database = {
           stock?: number
           supplier?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -160,6 +169,7 @@ export type Database = {
           seats_total: number
           status: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -170,6 +180,7 @@ export type Database = {
           seats_total?: number
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -180,6 +191,7 @@ export type Database = {
           seats_total?: number
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -196,6 +208,7 @@ export type Database = {
           severity: string
           status: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           completed_date?: string | null
@@ -209,6 +222,7 @@ export type Database = {
           severity?: string
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           completed_date?: string | null
@@ -222,6 +236,7 @@ export type Database = {
           severity?: string
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -232,6 +247,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          department: string | null
+          full_name: string | null
+          id: string
+          role: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          department?: string | null
+          full_name?: string | null
+          id: string
+          role?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          department?: string | null
+          full_name?: string | null
+          id?: string
+          role?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {
