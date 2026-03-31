@@ -98,7 +98,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
             </button>
             <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-semibold">
-              SC
+              {(profile?.full_name || "U").slice(0, 2).toUpperCase()}
             </div>
           </div>
         </header>
