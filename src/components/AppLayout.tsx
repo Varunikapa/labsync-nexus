@@ -62,13 +62,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="p-3 border-t border-sidebar-border">
           <div className="flex items-center gap-3 px-2 py-2">
             <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm shrink-0">
-              DR
+              {(profile?.full_name || "U").slice(0, 2).toUpperCase()}
             </div>
             {!collapsed && (
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">Dr. Sarah Chen</p>
-                <p className="text-xs text-muted-foreground truncate">Lab Director</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-foreground truncate">{profile?.full_name || "User"}</p>
+                <p className="text-xs text-muted-foreground truncate">{profile?.role || "Researcher"}</p>
               </div>
+            )}
+            {!collapsed && (
+              <button onClick={signOut} className="text-muted-foreground hover:text-foreground transition-colors" title="Sign out">
+                <LogOut className="w-4 h-4" />
+              </button>
             )}
           </div>
         </div>
